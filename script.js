@@ -1,5 +1,5 @@
 let runningTotal = 0;
-let buffer = "0";
+let buffer = '0';
 let previousOperator;
 const screen = document.querySelector('.screen');
 
@@ -14,20 +14,24 @@ function buttonClick(value){
 
 function handleSymbol(symbol){
     switch(symbol){
-        case 'C':
+        case 'AC':
             buffer = '0';
             runningTotal = 0;
             break
         case '=':
             if (previousOperator === null){
-                return
+                return;
             }
             flushOperation(parseInt(buffer));
             previousOperator = null;
             buffer = runningTotal;
             runningTotal = 0;
             break;
-        case '←':
+        case 'C':
+            if (screen.innerText === 'ERR'){
+                return;
+            }
+
             if (buffer.length === 1){
                 buffer = '0';
             } else {
@@ -38,8 +42,12 @@ function handleSymbol(symbol){
         case '−':
         case '×':
         case '÷':
-            handleMath(symbol);
-            break;
+            if (screen.innerText === 'ERR'){
+                break;
+            } else {
+                handleMath(symbol);
+                break;
+            }
     }
 }
 
@@ -60,18 +68,37 @@ function handleMath(symbol){
 }
 
 function flushOperation(intBuffer){
-    if (previousOperator === '+'){
-        runningTotal += intBuffer;
-    } else if (previousOperator === '−'){
-        runningTotal -= intBuffer;
-    } else if (previousOperator === '×'){
-        runningTotal *= intBuffer;
-    } else if (previousOperator === '÷'){
-        runningTotal /= intBuffer;
+    let result;
+
+    switch(previousOperator){
+        case '+':
+            result = runningTotal + intBuffer;
+            break;
+        case '−':
+            result = runningTotal - intBuffer;
+            break;
+        case '×':
+            result = runningTotal * intBuffer;
+            break;
+        case '÷':
+            result = runningTotal / intBuffer;
+            break;
+        default:
+            return;
     }
+
+    if (result.toString().length > 8){
+        screen.innerText = 'ERR';
+        return;
+    } 
+    runningTotal = result;
 }
 
 function handleNumber(numberString){
+    if (buffer.length === 8){
+        return;
+    }
+
     if (buffer === '0'){
         buffer = numberString;
     } else {
